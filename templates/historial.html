@@ -5,21 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial de Consultas | Generador Jurídico</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
         .card {
             background: white;
             border-radius: 20px;
@@ -32,29 +25,12 @@
             color: white;
             padding: 25px 30px;
         }
-        .card-header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-        }
-        .card-body {
-            padding: 30px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background: #f0f0f0;
-            color: #2c3e50;
-        }
-        tr:hover {
-            background: #f9f9f9;
-        }
+        .card-header h1 { font-size: 1.8rem; margin-bottom: 10px; }
+        .card-body { padding: 30px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f0f0f0; color: #2c3e50; }
+        tr:hover { background: #f9f9f9; }
         .btn-volver {
             background: #3498db;
             color: white;
@@ -63,9 +39,6 @@
             border-radius: 8px;
             display: inline-block;
             margin-bottom: 20px;
-        }
-        .btn-volver:hover {
-            background: #2980b9;
         }
         .ver-prompt {
             background: #27ae60;
@@ -93,11 +66,8 @@
             max-width: 800px;
             border-radius: 10px;
         }
-        .close {
-            float: right;
-            cursor: pointer;
-            font-size: 28px;
-        }
+        .close { float: right; cursor: pointer; font-size: 28px; }
+        pre { white-space: pre-wrap; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -114,12 +84,11 @@
         </div>
     </div>
 
-    <!-- Modal para ver prompt -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h3>Prompt Generado</h3>
-            <pre id="modal-prompt" style="white-space: pre-wrap; margin-top: 20px;"></pre>
+            <pre id="modal-prompt"></pre>
         </div>
     </div>
 
@@ -130,18 +99,15 @@
             
             if (data.success && data.archivos.length > 0) {
                 let html = '<table><tr><th>Fecha</th><th>Usuario</th><th>Área Legal</th><th>Acciones</th></tr>';
-                
                 for (const archivo of data.archivos) {
-                    html += `
-                        <tr>
-                            <td>${archivo.fecha}</td>
-                            <td>${archivo.usuario}</td>
-                            <td>${archivo.area_legal}</td>
-                            <td><button class="ver-prompt" onclick='verPrompt(${JSON.stringify(archivo.prompt)})'>Ver Prompt</button></td>
-                        </tr>
-                    `;
+                    html += `<tr>
+                        <td>${archivo.fecha}</td>
+                        <td>${archivo.usuario}</td>
+                        <td>${archivo.area_legal}</td>
+                        <td><button class="ver-prompt" onclick='verPrompt(${JSON.stringify(archivo.prompt)})'>Ver Prompt</button></td>
+                    </tr>`;
                 }
-                html += '</table>';
+                html += '赶</table>';
                 document.getElementById('historial').innerHTML = html;
             } else {
                 document.getElementById('historial').innerHTML = '<p>No hay consultas guardadas aún.</p>';
