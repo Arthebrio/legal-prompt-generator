@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Generador de Prompts Jurídicos | Asistente Legal IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 25px 30px;
+        }
+
+        .card-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .card-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn-generar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-generar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102,126,234,0.4);
+        }
+
+        .btn-generar:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .resultado-card {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .prompt-content {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #3498db;
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.8;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        .prompt-content strong {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .prompt-content hr {
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .card-header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+        }
+
+        .info-text {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tarjeta de formulario -->
+        <div class="card">
+            <div class="card-header">
+                <h1>⚖️ Generador de Prompts Jurídicos</h1>
+                <p>Asistente legal impulsado por inteligencia artificial</p>
+            </div>
+            <div class="card-body">
+                <form id="formulario">
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Nombre completo *</label>
+                            <input type="text" id="nombre" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Correo electrónico *</label>
+                            <input type="email" id="email" placeholder="ejemplo@correo.com" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="telefono" placeholder="Ej: 555-123-4567">
+                        </div>
+                        <div class="form-group">
+                            <label>Ocupación</label>
+                            <input type="text" id="ocupacion" placeholder="Ej: Abogado, Estudiante, Empresario">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="direccion" placeholder="Calle, número, ciudad, código postal">
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Área legal *</label>
+                            <select id="area_legal" required>
+                                <option value="">Seleccione un área</option>
+                                <option value="Derecho Civil">Derecho Civil</option>
+                                <option value="Derecho Laboral">Derecho Laboral</option>
+                                <option value="Derecho Penal">Derecho Penal</option>
+                                <option value="Derecho Mercantil">Derecho Mercantil</option>
+                                <option value="Derecho Administrativo">Derecho Administrativo</option>
+                                <option value="Derecho Tributario">Derecho Tributario</option>
+                                <option value="Derecho Digital">Derecho Digital</option>
+                                <option value="Propiedad Intelectual">Propiedad Intelectual</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción del caso *</label>
+                            <textarea id="descripcion" placeholder="Describa detalladamente su caso jurídico..." required></textarea>
+                            <div class="info-text">Incluya la mayor cantidad de detalles posible para un mejor resultado</div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-generar" id="btnGenerar">
+                        🚀 Generar Prompt Jurídico
+                    </button>
+
+                    <div id="mensajeEspera" style="display: none; margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; text-align: center; color: white;">
+                        <strong>⏳ Espere, estamos procesando su solicitud...</strong><br>
+                        <small style="opacity: 0.9;">Esto puede tomar unos segundos. Por favor no cierre esta ventana.</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tarjeta de resultado -->
+        <div class="card resultado-card" id="resultadoCard">
+            <div class="card-header" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
+                <h2>📋 Prompt Generado</h2>
+                <p>Tu prompt profesional está listo para usar</p>
+            </div>
+            <div class="card-body">
+                <div class="prompt-content" id="promptContent"></div>
+                <button onclick="copiarPrompt()" class="btn-generar" style="margin-top: 20px; background: linear-gradient(135deg, #3498db, #2980b9);">
+                    📋 Copiar prompt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('formulario');
+        const btnGenerar = document.getElementById('btnGenerar');
+        const resultadoCard = document.getElementById('resultadoCard');
+        const promptContent = document.getElementById('promptContent');
+        const mensajeEspera = document.getElementById('mensajeEspera');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const datos = {
+                nombre: document.getElementById('nombre').value,
+                email: document.getElementById('email').value,
+                telefono: document.getElementById('telefono').value,
+                direccion: document.getElementById('direccion').value,
+                ocupacion: document.getElementById('ocupacion').value,
+                area_legal: document.getElementById('area_legal').value,
+                descripcion: document.getElementById('descripcion').value
+            };
+            
+            if (!datos.nombre || !datos.email || !datos.area_legal || !datos.descripcion) {
+                alert('Por favor complete todos los campos obligatorios (*)');
+                return;
+            }
+            
+            mensajeEspera.style.display = 'block';
+            btnGenerar.disabled = true;
+            btnGenerar.style.opacity = '0.6';
+            resultadoCard.style.display = 'none';
+            
+            try {
+                const response = await fetch('/generar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+                
+                const resultado = await response.json();
+                
+                if (resultado.success) {
+                    let textoMejorado = resultado.prompt;
+                    
+                    textoMejorado = textoMejorado.replace(/### Rol de la IA/g, '🎭 <strong style="color: #3498db; font-size: 1.2rem;">ROL DE LA IA</strong>');
+                    textoMejorado = textoMejorado.replace(/### Contexto Jurídico Aplicable/g, '⚖️ <strong style="color: #2ecc71; font-size: 1.2rem;">CONTEXTO JURÍDICO APLICABLE</strong>');
+                    textoMejorado = textoMejorado.replace(/### Instrucciones Paso a Paso/g, '📋 <strong style="color: #e67e22; font-size: 1.2rem;">INSTRUCCIONES PASO A PASO</strong>');
+                    textoMejorado = textoMejorado.replace(/### Formato de Salida Esperado/g, '📄 <strong style="color: #9b59b6; font-size: 1.2rem;">FORMATO DE SALIDA ESPERADO</strong>');
+                    textoMejorado = textoMejorado.replace(/### Restricciones y Advertencias/g, '⚠️ <strong style="color: #e74c3c; font-size: 1.2rem;">RESTRICCIONES Y ADVERTENCIAS</strong>');
+                    textoMejorado = textoMejorado.replace(/^(\d+)\. /gm, '🔹 $1. ');
+                    textoMejorado = textoMejorado.replace(/^- /gm, '• ');
+                    textoMejorado = textoMejorado.replace(/---/g, '<hr style="margin: 20px 0; border: none; height: 2px; background: linear-gradient(90deg, #667eea, #764ba2);">');
+                    textoMejorado = textoMejorado.replace(/\n/g, '<br>');
+                    
+                    promptContent.innerHTML = textoMejorado;
+                    resultadoCard.style.display = 'block';
+                    document.getElementById('descripcion').value = '';
+                    resultadoCard.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    alert('Error: ' + resultado.error);
+                }
+            } catch (error) {
+                alert('Error de conexión: ' + error.message);
+            } finally {
+                mensajeEspera.style.display = 'none';
+                btnGenerar.disabled = false;
+                btnGenerar.style.opacity = '1';
+            }
+        });
+        
+        function copiarPrompt() {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = promptContent.innerHTML;
+            const textoPlano = tempDiv.textContent || tempDiv.innerText;
+            
+            navigator.clipboard.writeText(textoPlano).then(() => {
+                alert('✅ Prompt copiado al portapapeles');
+            }).catch(() => {
+                alert('❌ No se pudo copiar');
+            });
+        }
+    </script>
+</body>
+</html>
