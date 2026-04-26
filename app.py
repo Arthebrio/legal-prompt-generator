@@ -126,6 +126,7 @@ Genera un prompt profesional con este formato:
 ### Formato de Salida Esperado
 """
         
+        # Usar sintaxis de openai 0.28.1
         respuesta = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
