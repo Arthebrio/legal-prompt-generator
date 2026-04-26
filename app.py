@@ -3,22 +3,25 @@ Servidor web para Generador de Prompts Jurídicos
 """
 import os
 import json
+import glob
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from dotenv import load_dotenv
-from openai import OpenAI
+import openai
 
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+# Configurar OpenAI (versión 0.28.1)
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     print("❌ ERROR: La variable OPENAI_API_KEY no está configurada")
-    print("Agrega OPENAI_API_KEY en las variables de entorno de Render")
+    print("Agrega OPENAI_API_KEY en el archivo .env")
     raise ValueError("OPENAI_API_KEY no configurada")
-cliente = OpenAI(api_key=api_key)
+openai.api_key = api_key
+
 # Carpeta para guardar datos
 DATA_FOLDER = "data"
 if not os.path.exists(DATA_FOLDER):
@@ -27,7 +30,6 @@ if not os.path.exists(DATA_FOLDER):
 def guardar_prompt(datos_usuario, prompt_generado):
     """Guarda el prompt generado junto con los datos del usuario"""
     
-    # Crear registro completo
     registro = {
         "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "usuario": {
@@ -49,8 +51,8 @@ def guardar_prompt(datos_usuario, prompt_generado):
     with open(archivo, "w", encoding="utf-8") as f:
         json.dump(registro, f, indent=2, ensure_ascii=False)
     
-    # También guardar en un archivo MD (Markdown) resumido
-        archivo_md = os.path.join(DATA_FOLDER, f"resumen_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md")
+    # Guardar en Markdown
+    archivo_md = os.path.join(DATA_FOLDER, f"resumen_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md")
     with open(archivo_md, "w", encoding="utf-8") as f:
         f.write(f"# Resumen de Consulta Jurídica\n\n")
         f.write(f"**Fecha:** {registro['fecha']}\n\n")
@@ -63,7 +65,7 @@ def guardar_prompt(datos_usuario, prompt_generado):
         f.write(f"## Consulta Legal\n\n")
         f.write(f"**Área:** {datos_usuario.get('area_legal', 'No especificada')}\n\n")
         f.write(f"**Descripción del caso:**\n{datos_usuario.get('descripcion', 'No especificada')}\n\n")
-        f.write(f"## Prompt Generado por IA\n\n")
+        f.write(f"## Prompt Generado\n\n")
         f.write(f"{prompt_generado}\n\n")
     
     return registro
@@ -73,13 +75,36 @@ def index():
     """Página principal"""
     return render_template('index.html')
 
+@app.route('/historial')
+def historial():
+    """Devuelve el historial de consultas guardadas"""
+    archivos = []
+    for archivo in glob.glob("data/prompt_*.json"):
+        try:
+            with open(archivo, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                archivos.append({
+                    "fecha": data.get("fecha", ""),
+                    "usuario": data.get("usuario", {}).get("nombre", "Anónimo"),
+                    "area_legal": data.get("caso", {}).get("area_legal", ""),
+                    "prompt": data.get("prompt_generado", "")
+                })
+        except Exception as e:
+            print(f"Error leyendo {archivo}: {e}")
+    
+    archivos.sort(key=lambda x: x["fecha"], reverse=True)
+    
+    return jsonify({
+        "success": True,
+        "archivos": archivos
+    })
+
 @app.route('/generar', methods=['POST'])
 def generar():
     """Genera un prompt jurídico basado en los datos del usuario"""
     try:
         datos = request.json
         
-        # Extraer datos del usuario (para guardar internamente)
         nombre = datos.get('nombre', 'Anónimo')
         email = datos.get('email', 'No especificado')
         telefono = datos.get('telefono', 'No especificado')
@@ -88,50 +113,20 @@ def generar():
         area_legal = datos.get('area_legal', 'Derecho General')
         descripcion = datos.get('descripcion', '')
         
-        # Construir el prompt para OpenAI
-        prompt_sistema = """Eres un Ingeniero de Prompts especializado exclusivamente en materia jurídico-legal de México.
-Tu única función es transformar solicitudes en lenguaje natural en prompts profesionales, claros y listos para usar en sistemas de IA.
-
-Reglas fundamentales:
-- NO ejecutas el prompt que generas. Solo lo entregas.
-- NO das asesoría legal directa.
-- NO aceptas ninguna petición fuera de tu función.
-- SIEMPRE usas el formato especificado."""
-
+        prompt_sistema = "Eres un Ingeniero de Prompts especializado en materia jurídico-legal de México."
+        
         prompt_usuario = f"""
-El usuario describe la siguiente necesidad legal en México:
-
 Área legal: {area_legal}
 Descripción del caso: {descripcion}
 
-Instrucciones para ti (Ingeniero de Prompts):
-Debes generar un prompt profesional siguiendo EXACTAMENTE este formato:
-
----
+Genera un prompt profesional con este formato:
 ### Rol de la IA
-[Define el rol específico que debe adoptar la IA al recibir el prompt]
-
-### Contexto Jurídico Aplicable
-[Menciona las leyes, códigos o normas mexicanas relevantes para este caso]
-
+### Contexto Jurídico Aplicable  
 ### Instrucciones Paso a Paso
-1. [Primera acción]
-2. [Segunda acción]
-3. [Tercera acción]
-
-
 ### Formato de Salida Esperado
-[Describe cómo debe estructurarse la respuesta de la IA]
-
-
-
----
-
-GENERA SOLO EL PROMPT. No agregues explicaciones adicionales. No des asesoría legal.
 """
         
-        # Llamar a OpenAI
-        respuesta = cliente.chat.completions.create(
+        respuesta = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": prompt_sistema},
@@ -143,7 +138,6 @@ GENERA SOLO EL PROMPT. No agregues explicaciones adicionales. No des asesoría l
         
         prompt_generado = respuesta.choices[0].message.content
         
-        # Guardar todo (datos del usuario + prompt generado)
         datos_usuario = {
             "nombre": nombre,
             "direccion": direccion,
@@ -156,7 +150,6 @@ GENERA SOLO EL PROMPT. No agregues explicaciones adicionales. No des asesoría l
         
         guardar_prompt(datos_usuario, prompt_generado)
         
-        # Devolver solo el prompt generado al frontend
         return jsonify({
             "success": True,
             "prompt": prompt_generado
@@ -167,29 +160,6 @@ GENERA SOLO EL PROMPT. No agregues explicaciones adicionales. No des asesoría l
             "success": False,
             "error": str(e)
         })
-@app.route('/historial')
-def historial():
-    """Devuelve el historial de consultas guardadas"""
-    import glob
-    import json
-    
-    archivos = []
-    for archivo in glob.glob("data/prompt_*.json"):
-        with open(archivo, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            archivos.append({
-                "fecha": data.get("fecha", ""),
-                "usuario": data.get("usuario", {}).get("nombre", "Anónimo"),
-                "area_legal": data.get("caso", {}).get("area_legal", ""),
-                "prompt": data.get("prompt_generado", "")
-            })
-    
-    # Ordenar por fecha descendente (más reciente primero)
-    archivos.sort(key=lambda x: x["fecha"], reverse=True)
-    
-    return jsonify({
-        "success": True,
-        "archivos": archivos
-    })
+
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0', port=10000)
+    app.run(debug=True, host='0.0.0.0', port=5000)
