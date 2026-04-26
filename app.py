@@ -13,8 +13,12 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-cliente = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    print("❌ ERROR: La variable OPENAI_API_KEY no está configurada")
+    print("Agrega OPENAI_API_KEY en las variables de entorno de Render")
+    raise ValueError("OPENAI_API_KEY no configurada")
+cliente = OpenAI(api_key=api_key)
 # Carpeta para guardar datos
 DATA_FOLDER = "data"
 if not os.path.exists(DATA_FOLDER):
