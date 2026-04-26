@@ -167,6 +167,29 @@ GENERA SOLO EL PROMPT. No agregues explicaciones adicionales. No des asesoría l
             "success": False,
             "error": str(e)
         })
-
+@app.route('/historial')
+def historial():
+    """Devuelve el historial de consultas guardadas"""
+    import glob
+    import json
+    
+    archivos = []
+    for archivo in glob.glob("data/prompt_*.json"):
+        with open(archivo, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            archivos.append({
+                "fecha": data.get("fecha", ""),
+                "usuario": data.get("usuario", {}).get("nombre", "Anónimo"),
+                "area_legal": data.get("caso", {}).get("area_legal", ""),
+                "prompt": data.get("prompt_generado", "")
+            })
+    
+    # Ordenar por fecha descendente (más reciente primero)
+    archivos.sort(key=lambda x: x["fecha"], reverse=True)
+    
+    return jsonify({
+        "success": True,
+        "archivos": archivos
+    })
 if __name__ == "__main__":
     app.run(debug=False, host='0.0.0.0', port=10000)
